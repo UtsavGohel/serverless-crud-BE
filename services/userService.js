@@ -44,3 +44,27 @@ exports.createUser = async (req, res) => {
     res.status(500).json({ error: "Could not create user", details: err });
   }
 };
+
+/**
+ * Get a specific user by ID
+ * @route GET /users/:id
+ */
+exports.getUser = async (req, res) => {
+  const params = {
+    TableName: TABLE_NAME,
+    Key: { userId: req.params.id },
+  };
+
+  try {
+    const result = await dynamoDb.get(params).promise();
+
+    if (result.Item) {
+      // All fields like name, email, age, phone, address will be returned
+      res.json(result.Item);
+    } else {
+      res.status(404).json({ error: "User not found" });
+    }
+  } catch (err) {
+    res.status(500).json({ error: "Could not fetch user", details: err });
+  }
+};
