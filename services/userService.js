@@ -68,3 +68,60 @@ exports.getUser = async (req, res) => {
     res.status(500).json({ error: "Could not fetch user", details: err });
   }
 };
+
+/**
+ * Update a specific user by ID
+ * @route PUT /users/:id
+ */
+exports.updateUser = async (req, res) => {
+  const { name, email, age, phone, address } = req.body;
+  const { id } = req.params;
+
+  const params = {
+    TableName: TABLE_NAME,
+    Key: { userId: id },
+    UpdateExpression:
+      "set #name = :name, #email = :email, #age = :age, #phone = :phone, #address = :address",
+
+    ExpressionAttributeNames: {
+      "#name": "name",
+      "#email": "email",
+      "#age": "age",
+      "#phone": "phone",
+      "#address": "address",
+    },
+    ExpressionAttributeValues: {
+      ":name": name,
+      ":email": email,
+      ":age": age,
+      ":phone": phone,
+      ":address": address,
+    },
+    ReturnValues: "ALL_NEW",
+  };
+
+  try {
+    const result = await dynamoDb.update(params).promise();
+    res.json(result.Attributes);
+  } catch (err) {
+    res.status(500).json({ error: "Could not update user", details: err });
+  }
+};
+
+/**
+ * Delete a user by ID
+ * @route DELETE /users/:id
+ */
+exports.deleteUser = async (req, res) => {
+  const params = {
+    TableName: TABLE_NAME,
+    Key: { userId: req.params.id },
+  };
+
+  try {
+    await dynamoDb.delete(params).promise();
+    res.status(204).end();
+  } catch (err) {
+    res.status(500).json({ error: "Could not delete user", details: err });
+  }
+};
